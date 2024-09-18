@@ -1,0 +1,19 @@
+### se pueden agregar mas de un request en un solo archivo 
+POST http://localhost:3001/api/notes
+Content-Type: application/json
+
+{
+    "content": "probando user REST en post",
+    "important": true
+}
+### para obtener todas las notas desde el servidor
+GET http://localhost:3001/api/notes
+
+### 
+POST http://localhost:3001/api/notesmejorado
+Content-Type: application/json
+
+{
+    "content":"probando important",
+    "important":true  
+}
