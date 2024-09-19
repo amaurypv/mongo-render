@@ -2,7 +2,7 @@ const express= require('express')
 const app=express()
 //se importa el modulo y se define como Notes
 //y se cambia la configuracion de get para que obtenga los datos de mongo.
-const Note=require('./models/note.js')
+const Notes=require('./models/note.js')
 
 //la libreria cors sirve para poder compartir datos en con fuentes externas como 
 //puede ser un puerto diferente, una url diferente.
@@ -63,7 +63,7 @@ app.get('/',(req,res)=>{
 })
 
 app.get('/api/notes',(req, res)=>{
-    Note.find({})
+    Notes.find({})
     .then(notes=>res.json(notes))
 })
 
@@ -103,26 +103,19 @@ app.use(express.json())
 
 //ahora se hace el request
 app.post('/api/notes', (req, res) => {
-  //se obtiene los datos a agregar desde el cuerpo en postman
-  /*Sin json-parser, la propiedad body no estaría definida. 
-  El json-parser funciona para que tome los datos JSON de una solicitud, 
-  los transforme en un objeto JavaScript y luego los adjunte a la propiedad body del 
-  objeto request antes de llamar al controlador de ruta. */
-  //se imprime la nota con la finalidad de ver si se agrego correctamente
-  const note = req.body;
-  /*se va a encontrar el id maximo de las notas
-  primero se va a usar una operacion ternaria que compruebe si existen elementos en la matriz note
-  si, es que si entonces se crea un nuevo array (...) con los id usando ... notes.map() y
-  con la funcion Mat.max se va a tomar el maximo valor
-  */ 
-  const idMax=notes.length>0?Math.max(...notes.map(n=>n.id)):0
-  //se define el nuevo id de la note que se obtuvo desde el body (note)
-  note.id=idMax+1
-  //se agrega la nota a la matriz note haciendo un concat
-  notes=notes.concat(note)
-  console.log(note);
-  res.json(note);
-
+  let cuerpo=req.body
+  //si no se cuenta con el contenido desde el body, se manda un error(400)
+  if(cuerpo.content===undefined){
+    res.status(400).json({error:' no tiene contenido'})
+  }
+  //se va a definir de nuevo la nota, con diferentes condiciones
+  nota= new Notes({
+    content:cuerpo.content,
+    important:cuerpo.important  
+  })
+  nota.save().then(
+    nuevaNota=>{res.json(nuevaNota)}
+  )
 })
 
 
@@ -137,23 +130,19 @@ const seleccionId=()=>{
 
 app.post('/api/notesmejorado',(req,res)=>{
   //se define la variable tomando los datos desde el body:
-  let note=req.body
+  let cuerpo=req.body
   //si no se cuenta con el contenido desde el body, se manda un error(400)
-  if(!note.content){
-    res.status(400).json({error:'note.content no tiene contenido'})
+  if(cuerpo.content===undefined){
+    res.status(400).json({error:' no tiene contenido'})
   }
   //se va a definir de nuevo la nota, con diferentes condiciones
-  note={
-    content: note.content,
-    //se si no se cuenta con note.important, se envía false.
-    important: note.important||false,
-    //para añadir el id, se toma la funcion definida antes
-    id: seleccionId()
-  }
-  //se agrega la nota a la matriz note haciendo un concat
-  notes=notes.concat(note)
-  console.log(note);
-  res.json(note)
+  nota= new Notes({
+    content:cuerpo.content,
+    important:cuerpo.important  
+  })
+  nota.save().then(
+    nuevaNota=>{res.json(nuevaNota)}
+  )
 })
 
 //se puede agregar middleware al final para enviar errores
