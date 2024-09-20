@@ -71,21 +71,12 @@ app.get('/api/notes',(req, res)=>{
 //usando como referencia el id 
 //haciendo un .GET y seleccionando el id del elemento que queremos leer en la direccion 
 app.get('/api/notes/:id',(req,res)=>{
-  //primero obtenermos el id desde la pagina por eso se ponen los (:)
-  //para buscarlos se tiene que utizar el req y params que son los parametros 
-  //que se tienen en la pagina
-  const id = req.params.id  
-  //ahora ya con el id, se busca el id en el objeto note haciendo un find
-  const note = notes.find(note => note.id == id)
-  //aun si no se encuentra el id se envia un 404
-  if(note){
-    res.json(note)
-  }else{
-    //si no se encuentra se envia un 404
-    //se usa res.status para enviar el codigo de error
-    // y se pone despues .end para terminar la respuesta
-    res.status(404).end()
-  }
+  //primero se obtiene el id desde el param(de la pagina)
+  let id=req.params.id
+  //se hace la busqueda en mongo en este caso se usa findById() toma el id como un String, que es lo      correcto para trabajar con los ObjectId de MongoDB.
+  Notes.findById(id).then(resultado=>{
+    res.json(resultado)
+  })
 })
 
 //ahora agregaremos un metodo para eliminar una nota seleccionada
@@ -111,7 +102,7 @@ app.post('/api/notes', (req, res) => {
   //se va a definir de nuevo la nota, con diferentes condiciones
   nota= new Notes({
     content:cuerpo.content,
-    important:cuerpo.important  
+    important:cuerpo.important||false  
   })
   nota.save().then(
     nuevaNota=>{res.json(nuevaNota)}
