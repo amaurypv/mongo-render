@@ -3,6 +3,7 @@ POST https://mongo-render-0a62.onrender.com/api/notes
 Content-Type: application/json
 
 {
+    
 }
 ### para obtener todas las notas desde el servidor
 GET https://mongo-render-0a62.onrender.com/api/notes

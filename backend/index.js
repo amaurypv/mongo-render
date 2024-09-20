@@ -75,7 +75,16 @@ app.get('/api/notes/:id',(req,res)=>{
   let id=req.params.id
   //se hace la busqueda en mongo en este caso se usa findById() toma el id como un String, que es lo      correcto para trabajar con los ObjectId de MongoDB.
   Notes.findById(id).then(resultado=>{
-    res.json(resultado)
+    //si se encuentra el contacto
+    if(resultado){
+      res.json(resultado)
+    }else{
+      res.status(400).end()
+    }
+  })
+  .catch(error=>{
+    console.log(`${error}`)
+    res.status(50).end()
   })
 })
 
