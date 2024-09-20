@@ -8,7 +8,7 @@ mongoose.set('strictQuery',false)
 require('dotenv').config()
 const url=process.env.MONGODB_URI
 
-console.log(`conectandose a ${url}`)
+console.log(`conectandose a Mongo`)
 
 //ahora se conecta a la base de datos. 
 mongoose.connect(url)
