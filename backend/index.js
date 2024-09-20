@@ -84,7 +84,7 @@ app.get('/api/notes/:id',(req,res)=>{
   })
   .catch(error=>{
     console.log(`${error}`)
-    res.status(50).end()
+    res.status(500).end()
   })
 })
 
