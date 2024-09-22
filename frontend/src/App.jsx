@@ -72,8 +72,10 @@ const App = (props) => {
         setTimeout(()=>{
           setErrorMEssage(null)},5000)
         })
-        
-      }
+  }
+  const eliminarNota=(id)=>{
+    noteServices.eliminar(id).then(respuesta=>console.log(`se elimino ${respuesta}`))
+  }
 
   
   const handleNoteChange=(event)=>{
@@ -86,7 +88,7 @@ const App = (props) => {
       <Notificacion message={errorMessage}/>
       <ul>
         {notes.map(note => 
-          <Note key={note.id} note={note} cambiarImportancia={()=>cambiarImportancia(note.id)}/>
+          <Note key={note.id} note={note} cambiarImportancia={()=>cambiarImportancia(note.id)} eliminarNota={()=>eliminarNota(note.id)} />
         )}
       </ul>
       <form onSubmit={addNote}> 

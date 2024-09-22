@@ -24,8 +24,14 @@ const create=newObject=>{
 const update=(id,newObject)=>{
     const request=axios.put(`${baseURL}/${id}`,newObject)
     return request.then(response=>response.data)
+
+//se va a definir un request para eliminar una nota por su id
+const eliminar=(id)=>{
+    const request= axios.delete(`${baseURL}/${id}`)
+    return request.then(response=>console.log(response.data))
+}
     
 }
 //se exportan las funciones, al momento de importar, se importan todas, por lo tanto para 
 //llamar las funciones sera necesario poner noteServices.getAll()....
-export default{getAll,create,update}
+export default{getAll,create,update,eliminar}
