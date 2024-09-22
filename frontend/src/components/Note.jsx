@@ -1,4 +1,4 @@
-const Note = ({ note, cambiarImportancia }) => {
+const Note = ({ note, cambiarImportancia,eliminarNota }) => {
   return (
     <li className="lista1">{note.content}
     {<button onClick={cambiarImportancia}>cambiar</button>}
