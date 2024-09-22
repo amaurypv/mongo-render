@@ -1,13 +1,14 @@
+require('dotenv').config()
 const express= require('express')
 const app=express()
-//se importa el modulo y se define como Notes
-//y se cambia la configuracion de get para que obtenga los datos de mongo.
-const Notes=require('./models/note.js')
-
 //la libreria cors sirve para poder compartir datos en con fuentes externas como 
 //puede ser un puerto diferente, una url diferente.
 const cors = require('cors')
+
+//se importa el modulo Note desde el archivo note.js
+const Note=require('./models/note.js')
 const { json } = require('express')
+const note = require('./models/note.js')
 
 app.use(express.static('dist'))
 app.use(cors())
@@ -62,38 +63,46 @@ app.get('/',(req,res)=>{
 
 })
 
+//para obtener las notas desde mongo se va a solicitar obtener los datos de la coleccion notes
 app.get('/api/notes',(req, res)=>{
-    Notes.find({})
-    .then(notes=>res.json(notes))
-})
+    Note.find({}).then(notes=>{res.json(notes)})
+})  
 
 //podemos acceder a un recurso en especifico es decir a un elemento de notes.
 //usando como referencia el id 
 //haciendo un .GET y seleccionando el id del elemento que queremos leer en la direccion 
 app.get('/api/notes/:id',(req,res)=>{
-  //primero se obtiene el id desde el param(de la pagina)
-  let id=req.params.id
-  //se hace la busqueda en mongo en este caso se usa findById() toma el id como un String, que es lo      correcto para trabajar con los ObjectId de MongoDB.
-  Notes.findById(id).then(resultado=>{
-    //si se encuentra el contacto
-    if(resultado){
-      res.json(resultado)
+  //primero obtenermos el id desde la pagina por eso se ponen los (:)
+  //para buscarlos se tiene que utizar el req y params que son los parametros que se tienen en la pagina
+  const id = req.params.id
+  //se realiza la busqueda en la base de datos de mongo por id con coleccion.findByid().then  
+  Note.findById(id).then(
+    idEncontrada=>{
+    //se va a poner una condicion si se encuentra el id
+    if(idEncontrada){
+      //entonces envia como resultado el contacto encontrado
+    {res.json(idEncontrada)}
     }else{
-      res.status(400).end()
+      //si no se encuentra manda 
+      res.status(404).end()
     }
   })
   .catch(error=>{
     console.log(`${error}`)
-    res.status(400).send({error:'no coincide con el formato de id'})
+    res.status(400).send({error:"no coincide con el formato de id"})
   })
 })
 
 //ahora agregaremos un metodo para eliminar una nota seleccionada
-app.delete('/api/notes/:id', (request, response) => {
-  const id = Number(request.params.id)
-  notes = notes.filter(note => note.id !== id)
-
-  response.status(204).end()  
+app.delete('/api/notes/:id', (req, res,next) => {
+  //se obtiene el id desde el browser
+  const id = req.params.id
+  //para eliminar una entrada en mongo usando mongoose se usa findByIdAndDelete()
+  Note.findByIdAndDelete(id).then(eliminado=>{
+    res.status(202).send(`se elimino ${eliminado}`).end()
+  })
+  //se envia un mensaje en caso de no encontrar el id
+  .catch(error=>next(error))
 })
 
 //para agregar notas a nuestra variable notes se usa el request POST
@@ -103,19 +112,26 @@ app.use(express.json())
 
 //ahora se hace el request
 app.post('/api/notes', (req, res) => {
-  let cuerpo=req.body
-  //si no se cuenta con el contenido desde el body, se manda un error(400)
+  //se obtiene los datos a agregar desde el cuerpo en postman
+  /*Sin json-parser, la propiedad body no estaría definida. 
+  El json-parser funciona para que tome los datos JSON de una solicitud, 
+  los transforme en un objeto JavaScript y luego los adjunte a la propiedad body del 
+  objeto request antes de llamar al controlador de ruta. */
+  //se imprime la nota con la finalidad de ver si se agrego correctamente
+  const cuerpo = req.body;
+  //primero se comprueba que haya contenido en el body, si no, se envia un mensaje que se tiene que llenar el body para poder proceder
   if(cuerpo.content===undefined){
-    res.status(400).json({error:' no tiene contenido'})
+    return res.status(404).json({error:'no hay contenido'})
   }
-  //se va a definir de nuevo la nota, con diferentes condiciones
-  nota= new Notes({
-    content:cuerpo.content,
-    important:cuerpo.important||false  
+ //ahora se va a definir la nueva nota.
+ const note=new Note({
+  content:cuerpo.content,
+  important:cuerpo.important||false
+ })
+ // y por ultimo se guarda en mongo
+ note.save().then(nuevanota=>{
+  res.json(nuevanota)
   })
-  nota.save().then(
-    nuevaNota=>{res.json(nuevaNota)}
-  )
 })
 
 
@@ -133,29 +149,66 @@ app.post('/api/notesmejorado',(req,res)=>{
   let cuerpo=req.body
   //si no se cuenta con el contenido desde el body, se manda un error(400)
   if(cuerpo.content===undefined){
-    res.status(400).json({error:' no tiene contenido'})
-  }
+    res.status(400).json({error:'note.content no tiene contenido'})
+  }else{
   //se va a definir de nuevo la nota, con diferentes condiciones
-  nota= new Notes({
-    content:cuerpo.content,
-    important:cuerpo.important  
+
+  const note= new Note({
+      content: cuerpo.content,
+      important: cuerpo.important || false,
   })
-  nota.save().then(
-    nuevaNota=>{res.json(nuevaNota)}
+  //se guardar la nueva nota
+  note.save().then(
+    notaguardada=>{res.json(notaguardada)}
   )
+  }
 })
+
+//se va agregar un nuevo request para cambiar el contenido de una nota
+app.put('/api/notes/:id',(req,res,next)=>{ 
+  //se define el id que se toma del param 
+  let id=req.params.id
+  //se define el cuerpo, de donde se va a tomar la nota
+  let cuerpo=req.body
+  //ahora se define la nota modificada, en este caso no se va a usar el Note.new porque no se va a generar una nueva nota, solo se tiene que modificar una existente
+  nota={
+    content:cuerpo.content,
+    important:cuerpo.important
+  }
+  //ahora se va a buscar y modificar la entrada de acuerdo al id que queremos cambiar, y ademas se tiene que agregae la nota definida antes y el objeto {new:true}  que hará que nuestro controlador de eventos sea llamado con el nuevo documento modificado en lugar del original.
+Note.findByIdAndUpdate(id,nota,{new:true})
+.then(notaMofificada=>{
+  res.json(notaMofificada)
+})
+.catch(error=>next(error))
+}
+)
 
 //se puede agregar middleware al final para enviar errores
 const endpointDesconocido=(req,res,next)=>{
   res.status(404).send({error:'no se encuentra el endpoint'})
 }
-
 app.use(endpointDesconocido)
+//se define un nuevo manejador de errores usando ahora next()
+//Los controladores de errores de Express son middleware que se definen con una función que acepta cuatro parámetros. Nuestro controlador de errores se ve así:
+
+const errorHandler=(error,req,res,next)=>{
+  console.error(error.message)
+  if(error.name==='CastError'){
+    return res.status(400).send({error:'no coincide el formato'})
+  }
+  next(error)
+}
+
+// este debe ser el último middleware cargado, ¡también todas las rutas deben ser registrada antes que esto!
+app.use(errorHandler)
 
 //se utilizar process.env.PORT para que RENDER pueda definir el puerto, 
 //si no estamos usando RENDER y no define una variable, entonces tomamos como puerto 
 //el numero 3001
-const PORT = process.env.PORT|| 3001
-app.listen(PORT,()=>{
+
+const PORT = process.env.PORT||3001
+//se ejecuta que xpress pueda ser accesible en todas las interfaces de la red
+app.listen(PORT,'0.0.0.0',()=>{
   console.log(`corriendo en el puerto ${PORT}`)
 })

@@ -4,7 +4,7 @@ por lo que se tiene que importar la libreria axios*/
 import axios from 'axios'
 //se define la base de la direccion del servidor
 const baseURL='/api/notes'
-
+    
 //se va a definir el request get mediante axios
 const getAll=()=>{
     const request= axios.get(baseURL)
