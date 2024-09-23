@@ -26,6 +26,7 @@ const update=(id,newObject)=>{
     return request.then(response=>response.data)
 
 //se va a definir un request para eliminar una nota por su id
+//axios.delete()solo lleva la url y el id, no necesita nada mas como argumento
 }
 const eliminar=(id)=>{
     const request=axios.delete(`${baseURL}/${id}`)

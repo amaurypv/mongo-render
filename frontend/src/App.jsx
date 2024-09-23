@@ -74,7 +74,9 @@ const App = (props) => {
         })
   }
   const eliminarNota=(id)=>{
-    noteServices.eliminar(id).then(respuesta=>console.log(`se elimino ${respuesta}`))
+    noteServices.eliminar(id).then(()=>
+    //se ejecuta el .filter para tener una nueva lista sin el id elminado
+    setNotes(notes.filter(note=>note.id!==id)))
   }
 
   
